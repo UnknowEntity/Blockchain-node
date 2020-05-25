@@ -6,6 +6,7 @@ const io = require("socket.io")(httpServer);
 const client = require("socket.io-client");
 
 const BlockChain = require("./models/chain");
+const Transaction = require("./models/transaction");
 const SocketActions = require("./constants");
 
 const socketListeners = require("./socketListeners");
@@ -48,6 +49,7 @@ app.post("/nodes", (req, res) => {
 app.post("/transaction", (req, res) => {
   const { sender, receiver, amount } = req.body;
   io.emit(SocketActions.ADD_TRANSACTION, sender, receiver, amount);
+  const transaction = new Transaction(sender, receiver, amount);
   blockChain.newTransaction(transaction);
   console.log(
     `Added transaction: ${JSON.stringify(transaction.getDetails(), null, "\t")}`
