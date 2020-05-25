@@ -2,7 +2,7 @@ const Block = require("./block");
 
 const actions = require("../constants");
 
-const { generateProof, isProofValid } = require("../utils/proof");
+const { generateProof } = require("../utils/proof");
 
 class Blockchain {
   constructor(blocks, io) {
@@ -34,7 +34,8 @@ class Blockchain {
         previousBlock.getNonce(),
         this.currentTransactions
       );
-      const { nonce, dontMine } = await generateProof(previousBlock.getNonce());
+      const nonce = await generateProof(block);
+      const dontMine = process.env.BREAK;
       block.setNonce(nonce);
       this.currentTransactions = [];
       if (dontMine !== "true") {
@@ -59,7 +60,7 @@ class Blockchain {
       if (currentBlock.getPreviousBlockHash() !== previousBlock.hashValue()) {
         return false;
       }
-      if (!isProofValid(previousBlock.getNonce(), currentBlock.getNonce())) {
+      if (currentBlock.hashValue().includes("00")) {
         return false;
       }
       if (currentBlock.index !== index) {

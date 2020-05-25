@@ -11,7 +11,7 @@ const SocketActions = require("./constants");
 
 const socketListeners = require("./socketListeners");
 
-const { PORT } = process.env;
+const PORT = process.env.PORT || 3000;
 var nodeList = [];
 
 const blockChain = new BlockChain(null, io);
@@ -49,12 +49,12 @@ app.post("/nodes", (req, res) => {
 app.post("/transaction", (req, res) => {
   const { sender, receiver, amount } = req.body;
   io.emit(SocketActions.ADD_TRANSACTION, sender, receiver, amount);
+  res.json({ message: "transaction success" }).end();
   const transaction = new Transaction(sender, receiver, amount);
   blockChain.newTransaction(transaction);
   console.log(
     `Added transaction: ${JSON.stringify(transaction.getDetails(), null, "\t")}`
   );
-  res.json({ message: "transaction success" }).end();
 });
 
 app.get("/chain", (req, res) => {

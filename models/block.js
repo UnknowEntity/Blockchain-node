@@ -1,4 +1,4 @@
-const crypto = require("crypto");
+const crypto = require("crypto-js");
 
 const Transaction = require("./transaction");
 
@@ -8,7 +8,11 @@ class Block {
     this.nonce = nonce;
     this.previousBlockHash = previousBlockHash;
     this.transactions = transactions;
-    this.timestamp = Date.now();
+    if (index !== 0) {
+      this.timestamp = Date.now();
+    } else {
+      this.timestamp = 1500000000000;
+    }
   }
 
   hashValue() {
@@ -16,9 +20,8 @@ class Block {
     const blockString = `${index}-${nonce}-${JSON.stringify(
       transactions
     )}-${timestamp}`;
-    const hashFunction = crypto.createHash("sha256");
-    hashFunction.update(blockString);
-    return hashFunction.digest("hex");
+    const hash = crypto.SHA256(blockString);
+    return hash.toString(crypto.enc.Hex);
   }
 
   setNonce(nonce) {
