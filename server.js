@@ -48,6 +48,10 @@ app.post("/nodes", (req, res) => {
 app.post("/transaction", (req, res) => {
   const { sender, receiver, amount } = req.body;
   io.emit(SocketActions.ADD_TRANSACTION, sender, receiver, amount);
+  blockChain.newTransaction(transaction);
+  console.log(
+    `Added transaction: ${JSON.stringify(transaction.getDetails(), null, "\t")}`
+  );
   res.json({ message: "transaction success" }).end();
 });
 
