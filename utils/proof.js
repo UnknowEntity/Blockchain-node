@@ -6,7 +6,8 @@ const generateProof = async (block) => {
   let proof = 0;
   let count = 0;
   var dontMine = process.env.BREAK;
-  while (dontMine !== "true" && hash.substring(0, 4) !== "0000") {
+  let startTime = Date.now();
+  while (dontMine !== "true" && hash.substring(0, 5) !== "00000") {
     count++;
     proof = Math.random() * 10000000001;
     let blockString = `${index}-${proof}-${JSON.stringify(
@@ -16,7 +17,9 @@ const generateProof = async (block) => {
     hash = tempHash.toString(crypto.enc.Hex);
     dontMine = process.env.BREAK;
   }
-  console.log(`Number of loop: ${count}`);
+  console.log(
+    `Number of loop: ${count} Time mining: ${Date.now() - startTime} ms`
+  );
   return proof;
 };
 // new Promise((resolve) => {
