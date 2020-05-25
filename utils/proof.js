@@ -19,7 +19,7 @@ const isProofValid = (previousProof, currentProof) => {
   const hashFunction = crypto.createHash("sha256");
   hashFunction.update(proofString);
   const hexString = hashFunction.digest("hex");
-  if (hexString.includes("000000")) {
+  if (hexString.includes("000")) {
     return true;
   }
   return false;
