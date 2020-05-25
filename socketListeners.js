@@ -38,11 +38,8 @@ const socketListeners = (socket, chain) => {
     }
   });
 
-  socket.on(SocketActions.ADD_NODE, () => {
-    if (process.env.BREAK) {
-      console.log("End Mining encountered");
-      process.env.BREAK = false;
-    }
+  socket.on(SocketActions.HELLO, () => {
+    console.log("hello");
   });
 
   return socket;
