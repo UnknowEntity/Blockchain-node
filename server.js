@@ -20,7 +20,7 @@ app.use(bodyParser.json());
 app.post("/nodes", (req, res) => {
   const { host, port } = req.body;
   const { callback, nodeLength } = req.query;
-  const node = `http://${host}:${port}`;
+  const node = `https://${host}:${port}`;
   nodeList.push(node);
   const socketNode = socketListeners(client(node));
   blockChain.addNode(socketNode);
