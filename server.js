@@ -18,9 +18,9 @@ const blockChain = new BlockChain(null, io);
 app.use(bodyParser.json());
 
 app.post("/nodes", (req, res) => {
-  const { host, port } = req.body;
+  const { host } = req.body;
   const { callback, nodeLength } = req.query;
-  const node = `https://${host}:${port}`;
+  const node = `https://${host}`;
   nodeList.push(node);
   const socketNode = socketListeners(client(node));
   blockChain.addNode(socketNode);
@@ -28,7 +28,6 @@ app.post("/nodes", (req, res) => {
     if (parseInt(nodeLength) > 1 && nodeList.length === 1) {
       axios.post(`${node}/request-list`, {
         host: req.hostname,
-        port: PORT,
       });
     } else if (nodeList.length > 1 && parseInt(nodeLength) === 1) {
       axios.post(`${node}/update-list`, {
@@ -40,7 +39,6 @@ app.post("/nodes", (req, res) => {
   } else {
     axios.post(`${node}/nodes?callback=true&nodeLength=${nodeList.length}`, {
       host: req.hostname,
-      port: PORT,
     });
     console.info(`Added node ${node}`);
     res.json({ status: "Added node" }).end();
@@ -69,7 +67,7 @@ app.get("/node-list", (req, res) => {
 
 app.post("/request-list", (req, res) => {
   const { host, port } = req.body;
-  const node = `http://${host}:${port}`;
+  const node = `https://${host}`;
   axios.post(`${node}/update-list`, {
     requestNodeList: nodeList,
   });
@@ -78,14 +76,13 @@ app.post("/request-list", (req, res) => {
 
 app.post("/update-list", (req, res) => {
   const { requestNodeList } = req.body;
-  const currentNode = `http://${req.hostname}:${PORT}`;
+  const currentNode = `https://${req.hostname}`;
   console.log(currentNode);
 
   for (let index = 0; index < requestNodeList.length; index++) {
     if (requestNodeList[index] !== currentNode) {
       axios.post(`${requestNodeList[index]}/request-join`, {
         host: req.hostname,
-        port: PORT,
       });
     }
   }
@@ -95,17 +92,16 @@ app.post("/update-list", (req, res) => {
 app.post("/request-join", (req, res) => {
   const { host, port } = req.body;
   const { callback } = req.query;
-  const node = `http://${host}:${port}`;
+  const node = `https://${host}`;
   nodeList.push(node);
   const socketNode = socketListeners(client(node));
-  socketNodes.push(socketNode);
+  blockChain.addNode(socketNode);
   if (callback === "true") {
     console.info(`Added node ${node} back`);
     res.json({ status: "Added node Back" }).end();
   } else {
     axios.post(`${node}/request-join?callback=true`, {
       host: req.hostname,
-      port: PORT,
     });
     console.info(`Added node ${node}`);
     res.json({ status: "Added node" }).end();
@@ -119,7 +115,7 @@ io.on("connection", (socket) => {
   });
 });
 
-blockChain.addNode(socketListeners(client(`http://localhost:${PORT}`)));
+// blockChain.addNode(socketListeners(client(`http://localhost:${PORT}`)));
 
 httpServer.listen(PORT, () =>
   console.info(`Express server running on ${PORT}...`)
