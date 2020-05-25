@@ -60,7 +60,7 @@ class Blockchain {
       if (currentBlock.getPreviousBlockHash() !== previousBlock.hashValue()) {
         return false;
       }
-      if (currentBlock.hashValue().includes("00")) {
+      if (currentBlock.hashValue().substring(0, 5) !== "00000") {
         return false;
       }
       if (currentBlock.index !== index) {
