@@ -48,8 +48,19 @@ app.post("/nodes", (req, res) => {
 });
 
 app.post("/transaction", (req, res) => {
-  const { publicKey, transactionHash, signature, transaction } = req.body;
+  const { publicKey, signature, transaction } = req.body;
   const { sender, receiver, amount } = transaction;
+
+  var buffer = crypto
+    .createHash("sha256")
+    .update(JSON.stringify(transaction), "utf8")
+    .digest();
+  const transactionHash = new Uint8Array(
+    buffer.buffer,
+    buffer.byteOffset,
+    buffer.length / Uint8Array.BYTES_PER_ELEMENT
+  );
+
   var x = publicKey.splice(0, 32);
   var newPublucKey = publicKey.concat(x);
   newPublucKey.reverse();
@@ -60,7 +71,7 @@ app.post("/transaction", (req, res) => {
   if (
     secp256k1.ecdsaVerify(
       new Uint8Array(newSignature),
-      new Uint8Array(transactionHash),
+      transactionHash,
       new Uint8Array(newPublucKey)
     )
   ) {
