@@ -4,6 +4,7 @@ const httpServer = require("http").Server(app);
 const axios = require("axios");
 const io = require("socket.io")(httpServer);
 const client = require("socket.io-client");
+const secp256k1 = require("secp256k1");
 
 const BlockChain = require("./models/chain");
 const Transaction = require("./models/transaction");
@@ -47,14 +48,36 @@ app.post("/nodes", (req, res) => {
 });
 
 app.post("/transaction", (req, res) => {
-  const { sender, receiver, amount } = req.body;
-  io.emit(SocketActions.ADD_TRANSACTION, sender, receiver, amount);
-  res.json({ message: "transaction success" }).end();
-  const transaction = new Transaction(sender, receiver, amount);
-  blockChain.newTransaction(transaction);
-  console.log(
-    `Added transaction: ${JSON.stringify(transaction.getDetails(), null, "\t")}`
-  );
+  const { publicKey, transactionHash, signature, transaction } = req.body;
+  const { sender, receiver, amount } = transaction;
+  var x = publicKey.splice(0, 32);
+  var newPublucKey = publicKey.concat(x);
+  newPublucKey.reverse();
+  newPublucKey.unshift(4);
+  var temp = signature.splice(0, 32);
+  var newSignature = signature.concat(temp);
+  newSignature.reverse();
+  if (
+    secp256k1.ecdsaVerify(
+      new Uint8Array(newSignature),
+      new Uint8Array(transactionHash),
+      new Uint8Array(newPublucKey)
+    )
+  ) {
+    res.json({ status: "valid" });
+    io.emit(SocketActions.ADD_TRANSACTION, sender, receiver, amount);
+    const transaction = new Transaction(sender, receiver, amount);
+    blockChain.newTransaction(transaction);
+    console.log(
+      `Added transaction: ${JSON.stringify(
+        transaction.getDetails(),
+        null,
+        "\t"
+      )}`
+    );
+  } else {
+    res.json({ status: "invalid" });
+  }
 });
 
 app.get("/chain", (req, res) => {
