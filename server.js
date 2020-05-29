@@ -5,6 +5,7 @@ const axios = require("axios");
 const io = require("socket.io")(httpServer);
 const client = require("socket.io-client");
 const secp256k1 = require("secp256k1");
+const crypto = require("crypto");
 
 const BlockChain = require("./models/chain");
 const Transaction = require("./models/transaction");
