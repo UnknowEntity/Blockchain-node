@@ -7,6 +7,8 @@ const client = require("socket.io-client");
 const secp256k1 = require("secp256k1");
 const crypto = require("crypto");
 
+const { JSONToUint8Array, FormatedHash } = require("./function");
+
 const BlockChain = require("./models/chain");
 const Transaction = require("./models/transaction");
 const SocketActions = require("./constants");
@@ -49,40 +51,17 @@ app.post("/nodes", (req, res) => {
 });
 
 app.post("/transaction", (req, res) => {
-  const { publicKey, signature, transaction } = req.body;
-  const { sender, receiver, amount } = transaction;
-
-  var buffer = crypto
-    .createHash("sha256")
-    .update(JSON.stringify(transaction), "utf8")
-    .digest();
-  const transactionHash = new Uint8Array(
-    buffer.buffer,
-    buffer.byteOffset,
-    buffer.length / Uint8Array.BYTES_PER_ELEMENT
-  );
-
-  var x = publicKey.splice(0, 32);
-  var newPublucKey = publicKey.concat(x);
-  newPublucKey.reverse();
-  newPublucKey.unshift(4);
-  var temp = signature.splice(0, 32);
-  var newSignature = signature.concat(temp);
-  newSignature.reverse();
-  if (
-    secp256k1.ecdsaVerify(
-      new Uint8Array(newSignature),
-      transactionHash,
-      new Uint8Array(newPublucKey)
-    )
-  ) {
-    res.json({ status: "valid" });
-    io.emit(SocketActions.ADD_TRANSACTION, sender, receiver, amount);
-    const transaction = new Transaction(sender, receiver, amount);
-    blockChain.newTransaction(transaction);
+  const transaction = req.body;
+  console.log(transaction);
+  var clientTansaction = new Transaction(null, null, null);
+  var id = clientTansaction.parseTransaction(transaction);
+  if (blockChain.spendOutputs(clientTansaction)) {
+    res.json({ status: "valid", id });
+    io.emit(SocketActions.ADD_TRANSACTION, transaction);
+    blockChain.newTransaction(clientTansaction);
     console.log(
       `Added transaction: ${JSON.stringify(
-        transaction.getDetails(),
+        clientTansaction.getDetails(),
         null,
         "\t"
       )}`
@@ -104,6 +83,11 @@ app.get("/hello", (req, res) => {
 app.get("/node-list", (req, res) => {
   io.emit("get nodeList");
   res.json({ status: 200 });
+});
+
+app.post("/getconfirm", (req, res) => {
+  let confirms = blockChain.checkIsConfirm(req.body);
+  res.json(confirms);
 });
 
 app.post("/request-list", (req, res) => {

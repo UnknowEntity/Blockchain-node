@@ -1,0 +1,24 @@
+class Output {
+  constructor(amount, address, publicKey) {
+    this.amount = amount;
+    this.address = address;
+    this.publicKey = publicKey;
+  }
+
+  parseOutput(output) {
+    this.amount = output.amount;
+    this.address = output.address;
+    this.publicKey = output.publicKey;
+  }
+
+  getDetails() {
+    const { amount, address, publicKey } = this;
+    return {
+      amount,
+      address,
+      publicKey,
+    };
+  }
+}
+
+module.exports = Output;

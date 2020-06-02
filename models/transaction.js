@@ -1,26 +1,44 @@
+const Output = require("./output");
+const Input = require("./input");
+const { SHA256DataToHex } = require("../function");
+
 class Transaction {
-  constructor(sender, receiver, amount) {
-    this.sender = sender;
-    this.receiver = receiver;
-    this.amount = amount;
+  constructor(inputs, outputs, type) {
+    this.id = "0";
+    this.inputs = inputs;
+    this.outputs = outputs;
+    this.type = type;
     this.timestamp = Date.now();
   }
 
   getDetails() {
-    const { sender, receiver, amount, timestamp } = this;
+    const { inputs, outputs, type, timestamp } = this;
     return {
-      sender,
-      receiver,
-      amount,
+      inputs: inputs.getDetails(),
+      outputs: outputs.getDetails(),
+      type,
       timestamp,
     };
   }
 
   parseTransaction(transaction) {
-    this.sender = transaction.sender;
-    this.receiver = transaction.receiver;
-    this.amount = transaction.amount;
-    this.timestamp = transaction.timestamp;
+    if (transaction.Type !== "first" && transaction.Type !== "reward") {
+      this.inputs = transaction.Inputs.map((value) => {
+        return new Input(value.Address, value.Signature);
+      });
+    }
+    this.outputs = transaction.Outputs.map((value) => {
+      return new Output(value.Amount, value.Address, value.PublicKey);
+    });
+    this.type = transaction.Type;
+
+    this.id = SHA256DataToHex({
+      inputs: this.inputs,
+      outputs: this.outputs,
+      type: this.type,
+      timestamp: this.timestamp,
+    });
+    return this.id;
   }
 }
 
