@@ -54,7 +54,7 @@ app.post("/transaction", (req, res) => {
   const transaction = req.body;
   console.log(transaction);
   var clientTansaction = new Transaction(null, null, null);
-  var id = clientTansaction.parseTransaction(transaction);
+  var id = clientTansaction.parseTransactionWallet(transaction);
   if (blockChain.spendOutputs(clientTansaction)) {
     res.json({ status: "valid", id });
     io.emit(SocketActions.ADD_TRANSACTION, transaction);

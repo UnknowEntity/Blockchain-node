@@ -1,3 +1,5 @@
+const { SHA256DataToHex } = require("../function");
+
 class Output {
   constructor(amount, address, publicKey) {
     this.amount = amount;
@@ -18,6 +20,14 @@ class Output {
       address,
       publicKey,
     };
+  }
+
+  getSHA() {
+    return SHA256DataToHex({
+      amount: this.amount,
+      address: this.address,
+      publicKey: this.publicKey,
+    });
   }
 }
 

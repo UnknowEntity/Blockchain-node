@@ -21,7 +21,31 @@ class Transaction {
     };
   }
 
+  SHA256TransactionToHex() {
+    return SHA256DataToHex(this.getDetails());
+  }
+
   parseTransaction(transaction) {
+    if (transaction.type !== "first" && transaction.type !== "reward") {
+      this.inputs = transaction.inputs.map((value) => {
+        return new Input(value.address, value.signature);
+      });
+    }
+    this.outputs = transaction.outputs.map((value) => {
+      return new Output(value.amount, value.address, value.publicKey);
+    });
+    this.type = transaction.type;
+
+    this.id = SHA256DataToHex({
+      inputs: this.inputs,
+      outputs: this.outputs,
+      type: this.type,
+      timestamp: this.timestamp,
+    });
+    return this.id;
+  }
+
+  parseTransactionWallet(transaction) {
     if (transaction.Type !== "first" && transaction.Type !== "reward") {
       this.inputs = transaction.Inputs.map((value) => {
         return new Input(value.Address, value.Signature);

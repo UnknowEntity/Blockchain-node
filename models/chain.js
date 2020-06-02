@@ -1,10 +1,11 @@
 const Block = require("./block");
+const Output = require("./output");
 
 const secp256k1 = require("secp256k1");
 
 const { StringToUint8Array, FormatedHash } = require("../function");
 
-const actions = require("../constants");
+const { actions, constants } = require("../constants");
 
 const { generateProof } = require("../utils/proof");
 
@@ -15,6 +16,12 @@ class Blockchain {
     this.nodes = [];
     this.io = io;
     this.unSpend = [];
+    this.transactionBuffer = null;
+    this.blocksBuffer = null;
+    this.miningStatus = false;
+    this.confirm = 0;
+    this.deny = 0;
+    this.isConfirm = false;
   }
 
   addNode(node) {
@@ -31,7 +38,11 @@ class Blockchain {
     let outputs = transaction.outputs;
     let inputAmount = 0;
     let outputAmount = 0;
-    let unSpend = this.unSpend;
+    let unSpend = this.unSpend.map((value) => {
+      let unSpendTemp = new Output(0, 0, 0);
+      unSpendTemp.parseOutput(value);
+      return unSpendTemp;
+    });
     let temp = [];
 
     if (outputs.length === 0) {
@@ -41,7 +52,11 @@ class Blockchain {
     for (let index = 0; index < inputs.length; index++) {
       for (let index2 = 0; index2 < unSpend.length; index2++) {
         if (inputs[index].address === unSpend[index2].address) {
-          temp.push({ input: inputs[index], output: unSpend[index2] });
+          let unSpendRemove = unSpend.splice(index2, 1);
+          temp.push({
+            input: inputs[index],
+            output: unSpendRemove[0],
+          });
           inputAmount += unSpend[index2].amount;
         }
       }
@@ -98,6 +113,16 @@ class Blockchain {
   }
 
   mineBlock(block) {
+    this.blocksBuffer = [block];
+    this.confirm++;
+    this.reset();
+    console.log("Mined Successfully");
+    this.io.emit(actions.END_MINING, {
+      blocks: this.toArray(),
+    });
+  }
+
+  pushBlock(block) {
     this.blocks.push(block);
     for (let index1 = 0; index1 < block.length; index1++) {
       let currentOutputs = block[index].outputs;
@@ -105,17 +130,20 @@ class Blockchain {
         this.unSpend.push(currentOutputs[index2]);
       }
     }
-
-    console.log("Mined Successfully");
-    this.io.emit(actions.END_MINING, {
-      blocks: this.toArray(),
-      unSpend: this.unSpend,
-    });
   }
 
   async newTransaction(transaction) {
     this.currentTransactions.push(transaction);
-    if (this.currentTransactions.length === 2) {
+    await this.minning();
+  }
+
+  async minning() {
+    if (
+      this.currentTransactions.length >= constants.NUMBER_OF_TRANSACTION &&
+      !this.miningStatus
+    ) {
+      this.miningStatus = true;
+      this.transactionBuffer = this.currentTransactions.splice(0, 3);
       console.info("Starting mining block...");
       const previousBlock = this.lastBlock();
       process.env.BREAK = false;
@@ -123,15 +151,34 @@ class Blockchain {
         previousBlock.getIndex() + 1,
         previousBlock.hashValue(),
         previousBlock.getNonce(),
-        this.currentTransactions
+        this.transactionBuffer
       );
       const nonce = await generateProof(block);
       const dontMine = process.env.BREAK;
       block.setNonce(nonce);
-      this.currentTransactions = [];
+      //this.currentTransactions = [];
       if (dontMine !== "true") {
         this.mineBlock(block);
       }
+    }
+  }
+
+  async reMinning() {
+    console.info("Starting mining block...");
+    const previousBlock = this.lastBlock();
+    process.env.BREAK = false;
+    const block = new Block(
+      previousBlock.getIndex() + 1,
+      previousBlock.hashValue(),
+      previousBlock.getNonce(),
+      this.transactionBuffer
+    );
+    const nonce = await generateProof(block);
+    const dontMine = process.env.BREAK;
+    block.setNonce(nonce);
+    //this.currentTransactions = [];
+    if (dontMine !== "true") {
+      this.mineBlock(block);
     }
   }
 
@@ -151,7 +198,10 @@ class Blockchain {
       if (currentBlock.getPreviousBlockHash() !== previousBlock.hashValue()) {
         return false;
       }
-      if (currentBlock.hashValue().substring(0, 5) !== "00000") {
+      if (
+        currentBlock.hashValue().substring(0, constants.DIFFICULTY.length) !==
+        constants.DIFFICULTY
+      ) {
         return false;
       }
       if (currentBlock.index !== index) {
@@ -159,6 +209,36 @@ class Blockchain {
       }
       previousBlock = currentBlock;
     }
+    return true;
+  }
+
+  compareCurrentBlock(otherBlocks) {
+    const { blocks } = this;
+    if (blocks.length >= otherBlocks.length) {
+      return false;
+    }
+    let newBlockLength = otherBlocks.length - blocks.length;
+
+    for (let index = 0; index < blocks.length; index++) {
+      if (blocks[index].hashValue() !== otherBlocks[index].hashValue()) {
+        return false;
+      }
+    }
+
+    let newBlocks = otherBlocks.splice(blocks.length, newBlockLength);
+    if (newBlockLength === 1) {
+      let transactionInBlock = newBlocks[0].transactions;
+      for (let index = 0; index < this.transactionBuffer.length; index++) {
+        if (
+          transactionInBlock[index].SHA256TransactionToHex() !==
+          this.transactionBuffer[index].SHA256TransactionToHex()
+        ) {
+          return false;
+        }
+      }
+    }
+
+    this.blocksBuffer = newBlocks;
     return true;
   }
 
@@ -176,6 +256,48 @@ class Blockchain {
   printBlocks() {
     this.blocks.forEach((block) => console.log(block));
   }
+
+  confirmBlock() {
+    if (!this.isConfirm) {
+      this.confirm++;
+      let totalNodes = this.nodes.length + 1;
+      if (this.confirm >= totalNodes / 2) {
+        this.miningStatus = false;
+        this.confirm = 0;
+        this.blocks.concat(this.blocksBuffer);
+        this.blocksBuffer = null;
+        this.transactionBuffer = null;
+        this.isConfirm = true;
+        this.minning();
+      }
+    }
+  }
+
+  denyBlock() {
+    if (!this.isConfirm) {
+      this.deny++;
+      let totalNodes = this.nodes.length + 1;
+      if (this.deny >= totalNodes / 2) {
+        this.miningStatus = false;
+        this.deny = 0;
+        this.blocksBuffer = null;
+        this.isConfirm = true;
+        this.reMinning();
+      }
+    }
+  }
+
+  getStatus() {
+    return this.miningStatus;
+  }
+
+  reset() {
+    this.deny = 0;
+    this.confirm = 0;
+    this.isConfirm = false;
+  }
+
+  addUnspend() {}
 }
 
 module.exports = Blockchain;

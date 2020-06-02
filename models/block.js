@@ -1,4 +1,5 @@
 const crypto = require("crypto-js");
+const { constants } = require("../constants");
 
 const Transaction = require("./transaction");
 
@@ -11,7 +12,7 @@ class Block {
     if (index !== 0) {
       this.timestamp = Date.now();
     } else {
-      this.timestamp = 1500000000000;
+      this.timestamp = constants.GENESIS_DATE;
     }
   }
 
