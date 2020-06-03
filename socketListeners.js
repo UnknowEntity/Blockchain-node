@@ -3,7 +3,7 @@ const { actions } = require("./constants");
 const Transaction = require("./models/transaction");
 const Blockchain = require("./models/chain");
 
-const socketListeners = (socket, chain) => {
+const socketListeners = (io, socket, chain) => {
   socket.on(actions.ADD_TRANSACTION, (newTransaction) => {
     const transaction = new Transaction(null, null, null);
     transaction.parseTransactionWallet(newTransaction);
@@ -29,14 +29,14 @@ const socketListeners = (socket, chain) => {
       blockChain.getLength() >= chain.getLength()
     ) {
       if (chain.compareCurrentBlock(blockChain)) {
-        socket.broadcast.emit(actions.CHAIN_VERIFY);
+        io.emit(actions.CHAIN_VERIFY);
         chain.confirmBlock();
       } else {
-        socket.broadcast.emit(actions.WRONG_HASH_GENERATE);
+        io.emit(actions.WRONG_HASH_GENERATE);
         chain.denyBlock();
       }
     } else {
-      socket.broadcast.emit(actions.WRONG_HASH_GENERATE);
+      io.emit(actions.WRONG_HASH_GENERATE);
       chain.denyBlock();
     }
   });

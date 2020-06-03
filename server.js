@@ -27,7 +27,7 @@ app.post("/nodes", (req, res) => {
   const { callback, nodeLength } = req.query;
   const node = `http://${host}:${port}`;
   nodeList.push(node);
-  const socketNode = socketListeners(client(node), blockChain);
+  const socketNode = socketListeners(io, client(node), blockChain);
   blockChain.addNode(socketNode);
   if (callback === "true") {
     if (parseInt(nodeLength) > 1 && nodeList.length === 1) {
@@ -122,7 +122,7 @@ app.post("/request-join", (req, res) => {
   const { callback } = req.query;
   const node = `http://${host}:${port}`;
   nodeList.push(node);
-  const socketNode = socketListeners(client(node), blockChain);
+  const socketNode = socketListeners(io, client(node), blockChain);
   blockChain.addNode(socketNode);
   if (callback === "true") {
     console.info(`Added node ${node} back`);
