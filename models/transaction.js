@@ -13,9 +13,13 @@ class Transaction {
 
   getDetails() {
     const { inputs, outputs, type, timestamp } = this;
+    let inputsDetails = null;
+    if (inputs !== null) {
+      inputsDetails = inputs.map((value) => value.getDetails());
+    }
     return {
-      inputs: inputs.getDetails(),
-      outputs: outputs.getDetails(),
+      inputs: inputsDetails,
+      outputs: outputs.map((value) => value.getDetails()),
       type,
       timestamp,
     };

@@ -21,6 +21,7 @@ const generateProof = async (block) => {
     hash = tempHash.toString(crypto.enc.Hex);
     dontMine = process.env.BREAK;
   }
+
   if (dontMine === "true") {
     console.log("Someone mine a blocks");
   }
@@ -29,16 +30,5 @@ const generateProof = async (block) => {
   );
   return proof;
 };
-// new Promise((resolve) => {
-//   setImmediate(async () => {
-//     let proof = Math.random() * 10000000001;
-//     const dontMine = process.env.BREAK;
-//     if (isProofValid(previousProof, proof) || dontMine === "true") {
-//       resolve({ proof, dontMine });
-//     } else {
-//       resolve(await generateProof(previousProof));
-//     }
-//   });
-// });
 
 exports.generateProof = generateProof;

@@ -23,7 +23,8 @@ module.exports.StringToUint8Array = (data) => {
   return hash;
 };
 
-module.exports.FormatedHash = (hash, isPublicKey) => {
+module.exports.FormatedHash = (originalHash, isPublicKey) => {
+  var hash = [...originalHash];
   var x = hash.splice(0, 32);
   var newHash = hash.concat(x);
   newHash.reverse();
@@ -40,4 +41,21 @@ module.exports.SHA256DataToHex = (data) => {
     .update(JSON.stringify(data), "utf8")
     .digest("hex");
   return buffer;
+};
+
+module.exports.ArrayToStringHex = (array) => {
+  return Array.from(array, function (byte) {
+    return ("0" + (byte & 0xff).toString(16)).slice(-2);
+  }).join("");
+};
+
+module.exports.ParseHexString = (str) => {
+  var result = [];
+  while (str.length >= 2) {
+    result.push(parseInt(str.substring(0, 2), 16));
+
+    str = str.substring(2, str.length);
+  }
+
+  return result;
 };

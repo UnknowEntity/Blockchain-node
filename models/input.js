@@ -1,3 +1,5 @@
+const { ArrayToStringHex } = require("../function");
+
 class Input {
   constructor(address, signature) {
     //this.transactionId = transactionId;
@@ -15,7 +17,7 @@ class Input {
     const { address, signature } = this;
     return {
       address,
-      signature,
+      signature: ArrayToStringHex(signature),
     };
   }
 }

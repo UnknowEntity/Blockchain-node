@@ -1,4 +1,4 @@
-const { SHA256DataToHex } = require("../function");
+const { SHA256DataToHex, ArrayToStringHex } = require("../function");
 
 class Output {
   constructor(amount, address, publicKey) {
@@ -18,7 +18,7 @@ class Output {
     return {
       amount,
       address,
-      publicKey,
+      publicKey: ArrayToStringHex(publicKey),
     };
   }
 

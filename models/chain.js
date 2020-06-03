@@ -1,5 +1,6 @@
 const Block = require("./block");
 const Output = require("./output");
+const Transaction = require("./transaction");
 
 const secp256k1 = require("secp256k1");
 
@@ -24,11 +25,18 @@ class Blockchain {
     this.isConfirm = false;
   }
 
+  createReward() {
+    let privKey;
+    do {
+      privKey = randomBytes(32);
+    } while (!secp256k1.privateKeyVerify(privKey));
+  }
+
   addNode(node) {
     this.nodes.push(node);
   }
 
-  spendOutputs(transaction) {
+  spendOutputs(transaction, isSave) {
     if (transaction.type === "first" || transaction.type === "reward") {
       this.unSpend.push(transaction.outputs[0]);
       return true;
@@ -87,7 +95,9 @@ class Blockchain {
           new Uint8Array(newPublicKey)
         )
       ) {
-        this.unSpend.splice(this.unSpend.indexOf(temp[index].output), 1);
+        if (isSave) {
+          this.unSpend.splice(this.unSpend.indexOf(temp[index].output), 1);
+        }
       } else {
         return false;
       }
@@ -226,14 +236,26 @@ class Blockchain {
     }
 
     let newBlocks = otherBlocks.splice(blocks.length, newBlockLength);
-    if (newBlockLength === 1) {
-      let transactionInBlock = newBlocks[0].transactions;
-      for (let index = 0; index < this.transactionBuffer.length; index++) {
-        if (
-          transactionInBlock[index].SHA256TransactionToHex() !==
-          this.transactionBuffer[index].SHA256TransactionToHex()
-        ) {
-          return false;
+
+    for (let index = 0; index < newBlocks.length; index++) {
+      if (index === 0) {
+        let transactionInBlock = newBlocks[0].transactions;
+        for (let index1 = 0; index1 < this.transactionBuffer.length; index1++) {
+          if (
+            transactionInBlock[index1].SHA256TransactionToHex() !==
+            this.transactionBuffer[index1].SHA256TransactionToHex()
+          ) {
+            return false;
+          }
+        }
+      } else {
+        let transactionInBlock = newBlocks[index].transactions;
+        for (let index2 = 0; index2 < transactionInBlock.length; index2++) {
+          let temp = new Transaction(null, null, null);
+          temp.parseTransaction(transactionInBlock[index2]);
+          if (!this.spendOutputs(temp)) {
+            return false;
+          }
         }
       }
     }
@@ -266,6 +288,7 @@ class Blockchain {
         this.confirm = 0;
         this.blocks.concat(this.blocksBuffer);
         this.blocksBuffer = null;
+        this.addUnspend();
         this.transactionBuffer = null;
         this.isConfirm = true;
         this.minning();
@@ -297,7 +320,32 @@ class Blockchain {
     this.isConfirm = false;
   }
 
-  addUnspend() {}
+  addUnspend() {
+    let newBlocks = this.blocksBuffer;
+    for (let index = 0; index < newBlocks.length; index++) {
+      let transactions = null;
+      if (newBlocks.length === 1) {
+        transactions = this.transactionBuffer;
+      } else {
+        transactions = newBlocks[index].transactions;
+      }
+
+      if (index > 0) {
+        for (let index1 = 0; index1 < transactions.length; index1++) {
+          let tempTransaction = new Transaction(null, null, null);
+          tempTransaction.parseTransaction(transactions[index1]);
+          this.spendOutputs(tempTransaction, true);
+        }
+      }
+
+      for (let index1 = 0; index1 < transactions.length; index1++) {
+        let outputs = transactions[index1].outputs;
+        for (let index2 = 0; index2 < outputs.length; index2++) {
+          this.unSpend.push(outputs);
+        }
+      }
+    }
+  }
 }
 
 module.exports = Blockchain;
