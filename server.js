@@ -23,9 +23,9 @@ const blockChain = new BlockChain(null, io);
 app.use(bodyParser.json());
 
 app.post("/nodes", (req, res) => {
-  const { host } = req.body;
+  const { host, port } = req.body;
   const { callback, nodeLength } = req.query;
-  const node = `https://${host}`;
+  const node = `http://${host}:${port}`;
   nodeList.push(node);
   const socketNode = socketListeners(client(node), blockChain);
   blockChain.addNode(socketNode);
@@ -92,7 +92,7 @@ app.post("/getconfirm", (req, res) => {
 
 app.post("/request-list", (req, res) => {
   const { host, port } = req.body;
-  const node = `https://${host}`;
+  const node = `http://${host}:${port}`;
   axios.post(`${node}/update-list`, {
     requestNodeList: nodeList,
   });
@@ -101,7 +101,7 @@ app.post("/request-list", (req, res) => {
 
 app.post("/update-list", (req, res) => {
   const { requestNodeList } = req.body;
-  const currentNode = `https://${req.hostname}`;
+  const currentNode = `http://${req.hostname}`;
   console.log(currentNode);
 
   for (let index = 0; index < requestNodeList.length; index++) {
@@ -117,7 +117,7 @@ app.post("/update-list", (req, res) => {
 app.post("/request-join", (req, res) => {
   const { host, port } = req.body;
   const { callback } = req.query;
-  const node = `https://${host}`;
+  const node = `http://${host}:${port}`;
   nodeList.push(node);
   const socketNode = socketListeners(client(node), blockChain);
   blockChain.addNode(socketNode);
