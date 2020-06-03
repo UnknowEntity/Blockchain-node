@@ -2,6 +2,7 @@ const Block = require("./block");
 const Output = require("./output");
 const Transaction = require("./transaction");
 const { fork } = require("child_process");
+const path = require("path");
 
 const secp256k1 = require("secp256k1");
 
@@ -165,7 +166,8 @@ class Blockchain {
         this.transactionBuffer
       );
       //const nonce = await generateProof(block);
-      const forked = fork("../utils/proof.js");
+      let filePath = path.resolve(__dirname, "../utils/proof.js");
+      const forked = fork(filePath);
       forked.send(block);
       forked.on("message", (msg) => {
         const dontMine = process.env.BREAK;
