@@ -1,6 +1,7 @@
 const Block = require("./block");
 const Output = require("./output");
 const Transaction = require("./transaction");
+const { fork } = require("child_process");
 
 const secp256k1 = require("secp256k1");
 
@@ -163,13 +164,18 @@ class Blockchain {
         previousBlock.getNonce(),
         this.transactionBuffer
       );
-      const nonce = await generateProof(block);
-      const dontMine = process.env.BREAK;
-      block.setNonce(nonce);
-      //this.currentTransactions = [];
-      if (dontMine !== "true") {
-        this.mineBlock(block);
-      }
+      //const nonce = await generateProof(block);
+      const forked = fork("../utils/proof.js");
+      forked.send(block);
+      forked.on("message", (msg) => {
+        const dontMine = process.env.BREAK;
+        if (msg.status === 200) {
+          block.setNonce(msg.proof);
+          this.mineBlock(block);
+        }
+
+        //this.currentTransactions = [];
+      });
     }
   }
 
