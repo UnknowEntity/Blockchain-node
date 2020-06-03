@@ -129,8 +129,10 @@ class Blockchain {
     this.confirm++;
     this.reset();
     console.log("Mined Successfully");
+    let tempChain = this.toArray();
+    tempChain.push(block);
     this.io.emit(actions.END_MINING, {
-      blocks: this.toArray(),
+      blocks: tempChain,
     });
   }
 
