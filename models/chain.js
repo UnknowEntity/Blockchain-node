@@ -157,8 +157,14 @@ class Blockchain {
       !this.miningStatus
     ) {
       this.miningStatus = true;
-      this.transactionBuffer = this.currentTransactions.splice(0, 3);
+      this.transactionBuffer = this.currentTransactions.splice(
+        0,
+        constants.NUMBER_OF_TRANSACTION
+      );
       console.info("Starting mining block...");
+      console.log(
+        `Transaction length:${this.currentTransactions.length} Mining status:${this.miningStatus}`
+      );
       const previousBlock = this.lastBlock();
       process.env.BREAK = false;
       const block = new Block(
@@ -290,10 +296,12 @@ class Blockchain {
   }
 
   confirmBlock() {
+    console.log("Someone confirm");
     if (!this.isConfirm) {
       this.confirm++;
       let totalNodes = this.nodes.length + 1;
       if (this.confirm >= totalNodes / 2) {
+        console.log("Enough confirm");
         this.miningStatus = false;
         this.confirm = 0;
         this.blocks.concat(this.blocksBuffer);
@@ -307,10 +315,12 @@ class Blockchain {
   }
 
   denyBlock() {
+    console.log("Someone deny");
     if (!this.isConfirm) {
       this.deny++;
       let totalNodes = this.nodes.length + 1;
       if (this.deny >= totalNodes / 2) {
+        console.log("Enough deny");
         this.miningStatus = false;
         this.deny = 0;
         this.blocksBuffer = null;
