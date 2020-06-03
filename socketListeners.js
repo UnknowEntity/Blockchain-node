@@ -6,7 +6,7 @@ const Blockchain = require("./models/chain");
 const socketListeners = (socket, chain) => {
   socket.on(actions.ADD_TRANSACTION, (newTransaction) => {
     const transaction = new Transaction(null, null, null);
-    transaction.parseTransaction(newTransaction);
+    transaction.parseTransactionWallet(newTransaction);
     chain.newTransaction(transaction);
     console.info(
       `Added transaction: ${JSON.stringify(

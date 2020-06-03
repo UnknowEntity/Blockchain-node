@@ -11,7 +11,7 @@ const { JSONToUint8Array, FormatedHash } = require("./function");
 
 const BlockChain = require("./models/chain");
 const Transaction = require("./models/transaction");
-const SocketActions = require("./constants");
+const { actions } = require("./constants");
 
 const socketListeners = require("./socketListeners");
 
@@ -33,6 +33,7 @@ app.post("/nodes", (req, res) => {
     if (parseInt(nodeLength) > 1 && nodeList.length === 1) {
       axios.post(`${node}/request-list`, {
         host: req.hostname,
+        port: PORT,
       });
     } else if (nodeList.length > 1 && parseInt(nodeLength) === 1) {
       axios.post(`${node}/update-list`, {
@@ -44,6 +45,7 @@ app.post("/nodes", (req, res) => {
   } else {
     axios.post(`${node}/nodes?callback=true&nodeLength=${nodeList.length}`, {
       host: req.hostname,
+      port: PORT,
     });
     console.info(`Added node ${node}`);
     res.json({ status: "Added node" }).end();
@@ -57,7 +59,7 @@ app.post("/transaction", (req, res) => {
   var id = clientTansaction.parseTransactionWallet(transaction);
   if (blockChain.spendOutputs(clientTansaction, true)) {
     res.json({ status: "valid", id });
-    io.emit(SocketActions.ADD_TRANSACTION, transaction);
+    io.emit(actions.ADD_TRANSACTION, transaction);
     blockChain.newTransaction(clientTansaction);
     console.log(
       `Added transaction: ${JSON.stringify(
@@ -101,13 +103,14 @@ app.post("/request-list", (req, res) => {
 
 app.post("/update-list", (req, res) => {
   const { requestNodeList } = req.body;
-  const currentNode = `http://${req.hostname}`;
+  const currentNode = `http://${req.hostname}:${PORT}`;
   console.log(currentNode);
 
   for (let index = 0; index < requestNodeList.length; index++) {
     if (requestNodeList[index] !== currentNode) {
       axios.post(`${requestNodeList[index]}/request-join`, {
         host: req.hostname,
+        port: PORT,
       });
     }
   }
@@ -127,6 +130,7 @@ app.post("/request-join", (req, res) => {
   } else {
     axios.post(`${node}/request-join?callback=true`, {
       host: req.hostname,
+      port: PORT,
     });
     console.info(`Added node ${node}`);
     res.json({ status: "Added node" }).end();
