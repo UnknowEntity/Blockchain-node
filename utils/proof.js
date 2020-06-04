@@ -4,11 +4,14 @@ const { constants } = require("../constants");
 var isBreak = false;
 
 process.on("message", (data) => {
+  console.log(data.status);
   const { status } = data;
   if (status === 100) {
     FindProof(data.block);
   } else if (status === 300) {
     isBreak = true;
+    console.log("detect break");
+    console.log(isBreak);
   }
 });
 
@@ -35,9 +38,11 @@ const FindProof = (block) => {
 
   if (dontMine === true) {
     console.log("Someone mine a blocks");
+    console.log(isBreak);
     process.send({ status: 400 });
   } else {
     console.log("I minne a block");
+    console.log(isBreak);
     process.send({ status: 200, proof });
   }
   console.log(

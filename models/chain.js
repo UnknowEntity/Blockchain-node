@@ -2,7 +2,6 @@ const Block = require("./block");
 const Output = require("./output");
 const Transaction = require("./transaction");
 const forked = require("../global");
-const path = require("path");
 
 const secp256k1 = require("secp256k1");
 
@@ -166,8 +165,8 @@ class Blockchain {
       );
       // let filePath = path.resolve(__dirname, "../utils/proof.js");
       // const forked = fork(filePath, [], { env: process.env });
-      forked.send({ status: 100, block });
-      forked.on("message", (msg) => {
+      forked().send({ status: 100, block });
+      forked().on("message", (msg) => {
         const dontMine = process.env.BREAK;
         if (msg.status === 200) {
           block.setNonce(msg.proof);
@@ -189,8 +188,8 @@ class Blockchain {
     );
     // let filePath = path.resolve(__dirname, "../utils/proof.js");
     // const forked = fork(filePath);
-    forked.send({ status: 100, block });
-    forked.on("message", (msg) => {
+    forked().send({ status: 100, block });
+    forked().on("message", (msg) => {
       if (msg.status === 200) {
         block.setNonce(msg.proof);
         this.mineBlock(block);
