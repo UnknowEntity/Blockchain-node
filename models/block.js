@@ -17,10 +17,10 @@ class Block {
   }
 
   hashValue() {
-    const { index, nonce, transactions, timestamp } = this;
+    const { index, nonce, transactions, timestamp, previousBlockHash } = this;
     const blockString = `${index}-${nonce}-${JSON.stringify(
       transactions
-    )}-${timestamp}`;
+    )}-${timestamp}-${previousBlockHash}`;
     const hash = crypto.SHA256(blockString);
     return hash.toString(crypto.enc.Hex);
   }

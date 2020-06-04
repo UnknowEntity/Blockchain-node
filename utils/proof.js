@@ -2,7 +2,7 @@ const crypto = require("crypto-js");
 const { constants } = require("../constants");
 
 process.on("message", (block) => {
-  const { index, transactions, timestamp } = block;
+  const { index, transactions, timestamp, previousBlockHash } = block;
   let hash = "1";
   let proof = 0;
   let count = 0;
@@ -15,7 +15,7 @@ process.on("message", (block) => {
     proof = Math.random() * 10000000001;
     let blockString = `${index}-${proof}-${JSON.stringify(
       transactions
-    )}-${timestamp}`;
+    )}-${timestamp}-${previousBlockHash}`;
     let tempHash = crypto.SHA256(blockString);
     hash = tempHash.toString(crypto.enc.Hex);
     dontMine = process.env.BREAK;
