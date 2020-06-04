@@ -307,7 +307,7 @@ class Blockchain {
           block.parseBlock(value);
           return block;
         });
-        this.blocks.concat(tempChain);
+        this.blocks = this.blocks.concat(tempChain);
         this.blocksBuffer = null;
         this.transactionBuffer = null;
         this.isConfirm = true;
