@@ -9,8 +9,6 @@ const { StringToUint8Array, FormatedHash } = require("../function");
 
 const { actions, constants } = require("../constants");
 
-const { generateProof } = require("../utils/proof");
-
 class Blockchain {
   constructor(blocks, io) {
     this.blocks = blocks || [new Block(0, 1, 0, [])];
@@ -37,7 +35,9 @@ class Blockchain {
     this.nodes.push(node);
   }
 
-  spendOutputs(transaction, isSave) {
+  spendOutputs(transactionToCheck, isSave) {
+    let transaction = new Transaction(null, null, null);
+    transaction.parseTransaction(transactionToCheck);
     if (transaction.type === "first" || transaction.type === "reward") {
       this.unSpend.push(transaction.outputs[0]);
       return true;
@@ -157,11 +157,16 @@ class Blockchain {
       console.info("Starting mining block...");
       const previousBlock = this.lastBlock();
       process.env.BREAK = false;
+      const transactionsInBlock = this.transactionBuffer.map((value) => {
+        let transaction = new Transaction(null, null, null);
+        transaction.parseTransaction(value);
+        return transaction;
+      });
       const block = new Block(
         previousBlock.getIndex() + 1,
         previousBlock.hashValue(),
         previousBlock.getNonce(),
-        this.transactionBuffer
+        transactionsInBlock
       );
       forked().send(block);
       forked().on("message", (proof) => {
@@ -175,11 +180,16 @@ class Blockchain {
     console.info("Starting mining block...");
     const previousBlock = this.lastBlock();
     process.env.BREAK = false;
+    const transactionsInBlock = this.transactionBuffer.map((value) => {
+      let transaction = new Transaction(null, null, null);
+      transaction.parseTransaction(value);
+      return transaction;
+    });
     const block = new Block(
       previousBlock.getIndex() + 1,
       previousBlock.hashValue(),
       previousBlock.getNonce(),
-      this.transactionBuffer
+      transactionsInBlock
     );
     forked().send(block);
     forked().on("message", (proof) => {
@@ -292,7 +302,12 @@ class Blockchain {
         this.miningStatus = false;
         this.confirm = 0;
         this.addUnspend();
-        this.blocks.concat(this.blocksBuffer);
+        const tempChain = this.blocksBuffer.map((value) => {
+          let block = new Block(0);
+          block.parseBlock(value);
+          return block;
+        });
+        this.blocks.concat(tempChain);
         this.blocksBuffer = null;
         this.transactionBuffer = null;
         this.isConfirm = true;
