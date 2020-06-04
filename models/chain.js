@@ -212,15 +212,21 @@ class Blockchain {
     for (let index = 1; index < blocks.length; index++) {
       const currentBlock = blocks[index];
       if (currentBlock.getPreviousBlockHash() !== previousBlock.hashValue()) {
+        console.log("Wrong hash");
+        console.log(currentBlock);
         return false;
       }
       if (
         currentBlock.hashValue().substring(0, constants.DIFFICULTY.length) !==
         constants.DIFFICULTY
       ) {
+        console.log("Wrong difficulty");
+        console.log(currentBlock);
         return false;
       }
       if (currentBlock.index !== index) {
+        console.log("Wrong index");
+        console.log(currentBlock);
         return false;
       }
       previousBlock = currentBlock;
