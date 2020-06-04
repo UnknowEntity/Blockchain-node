@@ -163,15 +163,10 @@ class Blockchain {
         previousBlock.getNonce(),
         this.transactionBuffer
       );
-      // let filePath = path.resolve(__dirname, "../utils/proof.js");
-      // const forked = fork(filePath, [], { env: process.env });
-      forked().send({ status: 100, block });
+      forked().send(block);
       forked().on("message", (msg) => {
-        const dontMine = process.env.BREAK;
-        if (msg.status === 200) {
-          block.setNonce(msg.proof);
-          this.mineBlock(block);
-        }
+        block.setNonce(msg.proof);
+        this.mineBlock(block);
       });
     }
   }
@@ -186,8 +181,6 @@ class Blockchain {
       previousBlock.getNonce(),
       this.transactionBuffer
     );
-    // let filePath = path.resolve(__dirname, "../utils/proof.js");
-    // const forked = fork(filePath);
     forked().send({ status: 100, block });
     forked().on("message", (msg) => {
       if (msg.status === 200) {

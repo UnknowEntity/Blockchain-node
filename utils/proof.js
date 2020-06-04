@@ -20,11 +20,9 @@ process.on("message", (block) => {
     hash = tempHash.toString(crypto.enc.Hex);
     dontMine = process.env.BREAK;
   }
-
   console.log("I minne a block");
-  process.send({ status: 200, proof });
+  process.send(proof);
   console.log(
     `Number of loop: ${count} Time mining: ${Date.now() - startTime} ms`
   );
-  process.exit(0);
 });
