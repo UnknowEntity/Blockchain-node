@@ -58,7 +58,7 @@ class Block {
     this.previousBlockHash = block.previousBlockHash;
     this.timestamp = block.timestamp;
     this.transactions = block.transactions.map((transaction) => {
-      const parsedTransaction = new Transaction();
+      const parsedTransaction = new Transaction(null, null, null);
       parsedTransaction.parseTransaction(transaction);
       return parsedTransaction;
     });

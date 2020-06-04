@@ -56,6 +56,7 @@ class Blockchain {
     let temp = [];
 
     if (outputs.length === 0) {
+      console.log("Wrong output length");
       return false;
     }
 
@@ -73,6 +74,7 @@ class Blockchain {
     }
 
     if (inputs.length !== temp.length) {
+      console.log("Wrong input length");
       return false;
     }
 
@@ -81,6 +83,7 @@ class Blockchain {
     }
 
     if (inputAmount > outputAmount) {
+      console.log("Wrong amount");
       return false;
     }
 
@@ -101,6 +104,7 @@ class Blockchain {
           this.unSpend.splice(this.unSpend.indexOf(temp[index].output), 1);
         }
       } else {
+        console.log("Wrong signature");
         return false;
       }
     }
@@ -136,16 +140,6 @@ class Blockchain {
     });
   }
 
-  pushBlock(block) {
-    this.blocks.push(block);
-    for (let index1 = 0; index1 < block.length; index1++) {
-      let currentOutputs = block[index].outputs;
-      for (let index2 = 0; index2 < currentOutputs.length; index2++) {
-        this.unSpend.push(currentOutputs[index2]);
-      }
-    }
-  }
-
   async newTransaction(transaction) {
     this.currentTransactions.push(transaction);
     await this.minning();
@@ -162,9 +156,6 @@ class Blockchain {
         constants.NUMBER_OF_TRANSACTION
       );
       console.info("Starting mining block...");
-      console.log(
-        `Transaction length:${this.currentTransactions.length} Mining status:${this.miningStatus}`
-      );
       const previousBlock = this.lastBlock();
       process.env.BREAK = false;
       const block = new Block(
@@ -173,7 +164,6 @@ class Blockchain {
         previousBlock.getNonce(),
         this.transactionBuffer
       );
-      //const nonce = await generateProof(block);
       let filePath = path.resolve(__dirname, "../utils/proof.js");
       const forked = fork(filePath);
       forked.send(block);
@@ -183,8 +173,6 @@ class Blockchain {
           block.setNonce(msg.proof);
           this.mineBlock(block);
         }
-
-        //this.currentTransactions = [];
       });
     }
   }
@@ -199,13 +187,16 @@ class Blockchain {
       previousBlock.getNonce(),
       this.transactionBuffer
     );
-    const nonce = await generateProof(block);
-    const dontMine = process.env.BREAK;
-    block.setNonce(nonce);
-    //this.currentTransactions = [];
-    if (dontMine !== "true") {
-      this.mineBlock(block);
-    }
+    let filePath = path.resolve(__dirname, "../utils/proof.js");
+    const forked = fork(filePath);
+    forked.send(block);
+    forked.on("message", (msg) => {
+      const dontMine = process.env.BREAK;
+      if (msg.status === 200) {
+        block.setNonce(msg.proof);
+        this.mineBlock(block);
+      }
+    });
   }
 
   lastBlock() {
@@ -222,18 +213,15 @@ class Blockchain {
     for (let index = 1; index < blocks.length; index++) {
       const currentBlock = blocks[index];
       if (currentBlock.getPreviousBlockHash() !== previousBlock.hashValue()) {
-        console.log("Don't match previous hash");
         return false;
       }
       if (
         currentBlock.hashValue().substring(0, constants.DIFFICULTY.length) !==
         constants.DIFFICULTY
       ) {
-        console.log("Invalid hash");
         return false;
       }
       if (currentBlock.index !== index) {
-        console.log("Invalid Index");
         return false;
       }
       previousBlock = currentBlock;
@@ -244,12 +232,16 @@ class Blockchain {
   compareCurrentBlock(otherBlocks) {
     const { blocks } = this;
     if (blocks.length >= otherBlocks.length) {
+      console.log("Wrong block length");
       return false;
     }
     let newBlockLength = otherBlocks.length - blocks.length;
 
     for (let index = 0; index < blocks.length; index++) {
       if (blocks[index].hashValue() !== otherBlocks[index].hashValue()) {
+        console.log("Wrong log hash");
+        console.log(blocks[index]);
+        console.log(otherBlocks[index]);
         return false;
       }
     }
@@ -264,6 +256,9 @@ class Blockchain {
             transactionInBlock[index1].SHA256TransactionToHex() !==
             this.transactionBuffer[index1].SHA256TransactionToHex()
           ) {
+            console.log("Wrong transaction");
+            console.log(transactionInBlock[index1]);
+            console.log(this.transactionBuffer[index1]);
             return false;
           }
         }
@@ -272,7 +267,7 @@ class Blockchain {
         for (let index2 = 0; index2 < transactionInBlock.length; index2++) {
           let temp = new Transaction(null, null, null);
           temp.parseTransaction(transactionInBlock[index2]);
-          if (!this.spendOutputs(temp)) {
+          if (!this.spendOutputs(temp, false)) {
             return false;
           }
         }

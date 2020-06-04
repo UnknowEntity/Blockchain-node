@@ -39,6 +39,7 @@ class Transaction {
       return new Output(value.amount, value.address, value.publicKey);
     });
     this.type = transaction.type;
+    this.timestamp = transaction.timestamp;
 
     this.id = SHA256DataToHex({
       inputs: this.inputs,

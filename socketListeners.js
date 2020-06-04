@@ -29,7 +29,7 @@ const socketListeners = (io, socket, chain) => {
       blockChain.getLength() >= chain.getLength()
     ) {
       console.log("The chain pass first check");
-      if (chain.compareCurrentBlock(blockChain)) {
+      if (chain.compareCurrentBlock(blockChain.blocks)) {
         console.log("The chain pass all check");
         io.emit(actions.CHAIN_VERIFY);
         chain.confirmBlock();
