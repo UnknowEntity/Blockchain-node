@@ -181,12 +181,10 @@ class Blockchain {
       previousBlock.getNonce(),
       this.transactionBuffer
     );
-    forked().send({ status: 100, block });
-    forked().on("message", (msg) => {
-      if (msg.status === 200) {
-        block.setNonce(msg.proof);
-        this.mineBlock(block);
-      }
+    forked().send(block);
+    forked().on("message", (proof) => {
+      block.setNonce(proof);
+      this.mineBlock(block);
     });
   }
 
