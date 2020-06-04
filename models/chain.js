@@ -132,7 +132,7 @@ class Blockchain {
     this.confirm++;
     this.reset();
     console.log("Mined Successfully");
-    let tempChain = this.toArray();
+    let tempChain = this.toArrayData();
     tempChain.push(block);
     this.io.emit(actions.END_MINING, {
       blocks: tempChain,
@@ -212,21 +212,15 @@ class Blockchain {
     for (let index = 1; index < blocks.length; index++) {
       const currentBlock = blocks[index];
       if (currentBlock.getPreviousBlockHash() !== previousBlock.hashValue()) {
-        console.log("Wrong hash");
-        console.log(currentBlock);
         return false;
       }
       if (
         currentBlock.hashValue().substring(0, constants.DIFFICULTY.length) !==
         constants.DIFFICULTY
       ) {
-        console.log("Wrong difficulty");
-        console.log(currentBlock);
         return false;
       }
       if (currentBlock.index !== index) {
-        console.log("Wrong index");
-        console.log(currentBlock);
         return false;
       }
       previousBlock = currentBlock;
@@ -294,6 +288,11 @@ class Blockchain {
   toArray() {
     return this.blocks.map((block) => block.getDetails());
   }
+
+  toArrayData() {
+    return this.blocks.map((block) => block.getData());
+  }
+
   printBlocks() {
     this.blocks.forEach((block) => console.log(block));
   }

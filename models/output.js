@@ -8,9 +8,12 @@ class Output {
   }
 
   parseOutput(output) {
+    console.log(output);
     this.amount = output.amount;
     this.address = output.address;
-    this.publicKey = output.publicKey;
+    this.publicKey = output.publicKey.map((value) => {
+      return value;
+    });
   }
 
   getDetails() {
@@ -19,6 +22,17 @@ class Output {
       amount,
       address,
       publicKey: ArrayToStringHex(publicKey),
+    };
+  }
+
+  getDetails() {
+    const { amount, address, publicKey } = this;
+    return {
+      amount,
+      address,
+      publicKey: publicKey.map((value) => {
+        return value;
+      }),
     };
   }
 

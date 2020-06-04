@@ -10,7 +10,9 @@ class Input {
   parseInput(input) {
     //this.transactionId = input.amount;
     this.address = input.address;
-    this.signature = input.publicKey;
+    this.signature = input.signature.map((value) => {
+      return value;
+    });
   }
 
   getDetails() {
@@ -18,6 +20,16 @@ class Input {
     return {
       address,
       signature: ArrayToStringHex(signature),
+    };
+  }
+
+  getData() {
+    const { address, signature } = this;
+    return {
+      address,
+      signature: signature.map((value) => {
+        return value;
+      }),
     };
   }
 }

@@ -52,6 +52,17 @@ class Block {
     };
   }
 
+  getData() {
+    const { index, nonce, previousBlockHash, transactions, timestamp } = this;
+    return {
+      index,
+      nonce,
+      timestamp,
+      previousBlockHash,
+      transactions: transactions.map((transaction) => transaction.getData()),
+    };
+  }
+
   parseBlock(block) {
     this.index = block.index;
     this.nonce = block.nonce;
