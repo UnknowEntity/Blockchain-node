@@ -164,8 +164,8 @@ class Blockchain {
         this.transactionBuffer
       );
       forked().send(block);
-      forked().on("message", (msg) => {
-        block.setNonce(msg.proof);
+      forked().on("message", (proof) => {
+        block.setNonce(proof);
         this.mineBlock(block);
       });
     }
