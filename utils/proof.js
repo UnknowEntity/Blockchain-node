@@ -1,15 +1,26 @@
 const crypto = require("crypto-js");
 const { constants } = require("../constants");
 
-process.on("message", (block) => {
+var isBreak = false;
+
+process.on("message", (data) => {
+  const { status } = data;
+  if (status === 100) {
+    FindProof(data.block);
+  } else if (status === 300) {
+    isBreak = true;
+  }
+});
+
+const FindProof = (block) => {
   const { index, transactions, timestamp } = block;
   let hash = "1";
   let proof = 0;
   let count = 0;
-  var dontMine = process.env.BREAK;
+  var dontMine = isBreak;
   let startTime = Date.now();
   while (
-    dontMine !== "true" &&
+    !dontMine &&
     hash.substring(0, constants.DIFFICULTY.length) !== constants.DIFFICULTY
   ) {
     count++;
@@ -19,10 +30,10 @@ process.on("message", (block) => {
     )}-${timestamp}`;
     let tempHash = crypto.SHA256(blockString);
     hash = tempHash.toString(crypto.enc.Hex);
-    dontMine = process.env.BREAK;
+    dontMine = isBreak;
   }
 
-  if (dontMine === "true") {
+  if (dontMine === true) {
     console.log("Someone mine a blocks");
     process.send({ status: 400 });
   } else {
@@ -32,4 +43,4 @@ process.on("message", (block) => {
   console.log(
     `Number of loop: ${count} Time mining: ${Date.now() - startTime} ms`
   );
-});
+};

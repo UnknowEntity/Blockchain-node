@@ -1,7 +1,7 @@
 const Block = require("./block");
 const Output = require("./output");
 const Transaction = require("./transaction");
-const { fork } = require("child_process");
+const forked = require("../global");
 const path = require("path");
 
 const secp256k1 = require("secp256k1");
@@ -164,9 +164,9 @@ class Blockchain {
         previousBlock.getNonce(),
         this.transactionBuffer
       );
-      let filePath = path.resolve(__dirname, "../utils/proof.js");
-      const forked = fork(filePath);
-      forked.send(block);
+      // let filePath = path.resolve(__dirname, "../utils/proof.js");
+      // const forked = fork(filePath, [], { env: process.env });
+      forked.send({ status: 100, block });
       forked.on("message", (msg) => {
         const dontMine = process.env.BREAK;
         if (msg.status === 200) {
@@ -187,11 +187,10 @@ class Blockchain {
       previousBlock.getNonce(),
       this.transactionBuffer
     );
-    let filePath = path.resolve(__dirname, "../utils/proof.js");
-    const forked = fork(filePath);
-    forked.send(block);
+    // let filePath = path.resolve(__dirname, "../utils/proof.js");
+    // const forked = fork(filePath);
+    forked.send({ status: 100, block });
     forked.on("message", (msg) => {
-      const dontMine = process.env.BREAK;
       if (msg.status === 200) {
         block.setNonce(msg.proof);
         this.mineBlock(block);
@@ -302,9 +301,9 @@ class Blockchain {
         console.log("Enough confirm");
         this.miningStatus = false;
         this.confirm = 0;
+        this.addUnspend();
         this.blocks.concat(this.blocksBuffer);
         this.blocksBuffer = null;
-        this.addUnspend();
         this.transactionBuffer = null;
         this.isConfirm = true;
         this.minning();
