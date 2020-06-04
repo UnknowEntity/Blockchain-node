@@ -25,4 +25,5 @@ process.on("message", (block) => {
   console.log(
     `Number of loop: ${count} Time mining: ${Date.now() - startTime} ms`
   );
+  process.exit(0);
 });
