@@ -8,7 +8,6 @@ class Output {
   }
 
   parseOutput(output) {
-    console.log(output);
     this.amount = output.amount;
     this.address = output.address;
     this.publicKey = output.publicKey.map((value) => {
@@ -25,7 +24,7 @@ class Output {
     };
   }
 
-  getDetails() {
+  getData() {
     const { amount, address, publicKey } = this;
     return {
       amount,
