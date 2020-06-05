@@ -36,6 +36,7 @@ const GenerateProof = async (block) => {
   var dontMine = process.env.BREAK;
   let startTime = Date.now();
   while (
+    dontMine !== "true" &&
     hash.substring(0, constants.DIFFICULTY.length) !== constants.DIFFICULTY
   ) {
     count++;
