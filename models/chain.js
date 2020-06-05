@@ -358,12 +358,11 @@ class Blockchain {
           transaction.parseTransaction(this.workReward);
         } else {
           transaction.parseTransaction(this.myReward);
+          let tempMyKey = { ...this.myKey };
+          db.add(tempMyKey);
+          this.myKey = null;
         }
         this.transactionBuffer.unshift(transaction);
-
-        db.add(this.myKey).then(() => {
-          this.myKey = null;
-        });
 
         this.blocksBuffer = null;
         this.transactionBuffer = null;
