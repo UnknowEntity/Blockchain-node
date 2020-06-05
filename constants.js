@@ -8,7 +8,7 @@ module.exports.actions = {
 };
 
 module.exports.constants = {
-  DIFFICULTY: "0000",
+  DIFFICULTY: "0000)",
   NUMBER_OF_TRANSACTION: 2,
   GENESIS_DATE: 1500000000,
   JSON: ".\\DATA\\key.json",
