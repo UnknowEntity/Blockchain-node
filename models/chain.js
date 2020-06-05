@@ -1,7 +1,8 @@
 const Block = require("./block");
 const Output = require("./output");
 const Transaction = require("./transaction");
-const forked = require("../global");
+//const forked = require("../global");
+const GenerateProof = require("../utils/proof");
 const crypto = require("crypto");
 var BASE58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 const bs58 = require("base-x")(BASE58);
@@ -207,10 +208,18 @@ class Blockchain {
         previousBlock.getNonce(),
         transactionsInBlock
       );
-      forked().send(block);
-      forked().on("message", (proof) => {
-        block.setNonce(proof);
-        this.mineBlock(block);
+      // forked().send(block);
+      // forked().on("message", (proof) => {
+      //   block.setNonce(proof);
+      //   this.mineBlock(block);
+      // });
+
+      GenerateProof(block).then((value) => {
+        let dontMine = process.env.BREAK;
+        if (dontMine !== "true") {
+          block.setNonce(value);
+          this.mineBlock(block);
+        }
       });
     }
   }
