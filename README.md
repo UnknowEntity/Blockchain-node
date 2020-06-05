@@ -1,4 +1,4 @@
 # Blockchain-node
 
-### Use master branch for testing in local host
+### Use localhost-version branch for testing in local host
 ### heroku-version brand is for web sevice
