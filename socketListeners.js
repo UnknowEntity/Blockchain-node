@@ -18,12 +18,13 @@ const socketListeners = (io, socket, chain) => {
   });
 
   socket.on(actions.END_MINING, (data) => {
-    const { blocks } = data;
+    const { blocks, reward } = data;
     console.log("End Mining encountered");
     forked().kill("SIGINT");
     forked().on("exit", () => {
       chain.reset();
       const blockChain = new Blockchain();
+      chain.workReward = reward;
       blockChain.parseChain(blocks);
       if (
         blockChain.checkValidity() &&

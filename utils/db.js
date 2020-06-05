@@ -3,7 +3,7 @@ const FileSync = require("lowdb/adapters/FileSync");
 const fs = require("fs");
 
 if (!fs.existsSync("./DATA")) {
-  fs.mkdirSync("/DATA");
+  fs.mkdirSync("./DATA");
 }
 
 const adapter = new FileSync("DATA/db.json", { defaultValue: { keys: [] } });
