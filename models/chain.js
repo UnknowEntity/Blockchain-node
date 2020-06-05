@@ -361,6 +361,7 @@ class Blockchain {
           let tempMyKey = { ...this.myKey };
           db.add(tempMyKey);
           this.myKey = null;
+          this.myReward = null;
         }
         this.currentTransactions.unshift(transaction);
 
