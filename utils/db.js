@@ -1,5 +1,5 @@
 const low = require("lowdb");
-const FileSync = require("lowdb/adapters/FileSync");
+const FileSync = require("lowdb/adapters/FileAsync");
 const fs = require("fs");
 
 if (!fs.existsSync("./DATA")) {
