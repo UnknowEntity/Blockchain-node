@@ -6,17 +6,23 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./server.js",
-    "start-dev": "nodemon ./server.js"
+    "start-dev": "nodemon --ignore 'DATA/' ./server.js"
   },
   "author": "SleepingBird",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.2",
+    "base-x": "^3.0.8",
     "body-parser": "^1.19.0",
+    "bufferutil": "^4.0.1",
     "crypto": "^1.0.1",
+    "crypto-js": "^4.0.0",
     "express": "^4.17.1",
     "http": "0.0.1-security",
+    "lowdb": "^1.0.0",
+    "secp256k1": "^4.0.1",
     "socket.io": "^2.3.0",
-    "socket.io-client": "^2.3.0"
+    "socket.io-client": "^2.3.0",
+    "utf-8-validate": "^5.0.2"
   }
 }

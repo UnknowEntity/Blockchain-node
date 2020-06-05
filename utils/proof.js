@@ -1,29 +1,29 @@
-const crypto = require("crypto");
+const crypto = require("crypto-js");
+const { constants } = require("../constants");
 
-const generateProof = (previousProof) =>
-  new Promise((resolve) => {
-    setImmediate(async () => {
-      let proof = Math.random() * 10000000001;
-      const dontMine = process.env.BREAK;
-      if (isProofValid(previousProof, proof) || dontMine === "true") {
-        resolve({ proof, dontMine });
-      } else {
-        resolve(await generateProof(previousProof));
-      }
-    });
-  });
-
-const isProofValid = (previousProof, currentProof) => {
-  const difference = currentProof - previousProof;
-  const proofString = `difference-${difference}`;
-  const hashFunction = crypto.createHash("sha256");
-  hashFunction.update(proofString);
-  const hexString = hashFunction.digest("hex");
-  if (hexString.includes("000000")) {
-    return true;
+process.on("message", (block) => {
+  const { index, transactions, timestamp, previousBlockHash } = block;
+  let hash = "1";
+  let proof = 0;
+  let count = 0;
+  var dontMine = process.env.BREAK;
+  let startTime = Date.now();
+  while (
+    hash.substring(0, constants.DIFFICULTY.length) !== constants.DIFFICULTY
+  ) {
+    count++;
+    proof = Math.random() * 10000000001;
+    let blockString = `${index}-${proof}-${JSON.stringify(
+      transactions
+    )}-${timestamp}-${previousBlockHash}`;
+    let tempHash = crypto.SHA256(blockString);
+    hash = tempHash.toString(crypto.enc.Hex);
+    dontMine = process.env.BREAK;
   }
-  return false;
-};
-
-exports.generateProof = generateProof;
-exports.isProofValid = isProofValid;
+  console.log("I minne a block");
+  process.send(proof);
+  console.log(
+    `Number of loop: ${count} Time mining: ${Date.now() - startTime} ms`
+  );
+  process.exit(0);
+});

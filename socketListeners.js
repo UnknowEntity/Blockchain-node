@@ -1,11 +1,12 @@
-const SocketActions = require("./constants");
-
+const { actions } = require("./constants");
+const forked = require("./global");
 const Transaction = require("./models/transaction");
 const Blockchain = require("./models/chain");
 
-const socketListeners = (socket, chain) => {
-  socket.on(SocketActions.ADD_TRANSACTION, (sender, receiver, amount) => {
-    const transaction = new Transaction(sender, receiver, amount);
+const socketListeners = (io, socket, chain) => {
+  socket.on(actions.ADD_TRANSACTION, (newTransaction) => {
+    const transaction = new Transaction(null, null, null);
+    transaction.parseTransaction(newTransaction);
     chain.newTransaction(transaction);
     console.info(
       `Added transaction: ${JSON.stringify(
@@ -16,33 +17,47 @@ const socketListeners = (socket, chain) => {
     );
   });
 
-  socket.on(SocketActions.END_MINING, (newChain) => {
+  socket.on(actions.END_MINING, (data) => {
+    const { blocks, reward } = data;
     console.log("End Mining encountered");
-    process.env.BREAK = true;
-    const blockChain = new Blockchain();
-    blockChain.parseChain(newChain);
-    if (
-      blockChain.checkValidity() &&
-      blockChain.getLength() >= chain.getLength()
-    ) {
-      chain.blocks = blockChain.blocks;
-    } else {
-      socket.broadcast.emit(SocketActions.WRONG_HASH_GENERATE);
-    }
+    forked().kill("SIGINT");
+    forked().on("exit", () => {
+      chain.reset();
+      const blockChain = new Blockchain();
+      chain.workReward = reward;
+      blockChain.parseChain(blocks);
+      if (
+        blockChain.checkValidity() &&
+        blockChain.getLength() >= chain.getLength()
+      ) {
+        console.log("The chain pass first check");
+        if (chain.compareCurrentBlock(blockChain.blocks)) {
+          console.log("The chain pass all check");
+          io.emit(actions.CHAIN_VERIFY);
+          chain.confirmBlock();
+        } else {
+          console.log("The chain fail second check");
+          io.emit(actions.WRONG_HASH_GENERATE);
+          chain.denyBlock();
+        }
+      } else {
+        console.log("Something is wrong with the chain");
+        io.emit(actions.WRONG_HASH_GENERATE);
+        chain.denyBlock();
+      }
+    });
   });
 
-  socket.on(SocketActions.WRONG_HASH_GENERATE, () => {
-    if (process.env.BREAK) {
-      console.log("End Mining encountered");
-      process.env.BREAK = false;
-    }
+  socket.on(actions.WRONG_HASH_GENERATE, () => {
+    chain.denyBlock();
   });
 
-  socket.on(SocketActions.ADD_NODE, () => {
-    if (process.env.BREAK) {
-      console.log("End Mining encountered");
-      process.env.BREAK = false;
-    }
+  socket.on(actions.HELLO, () => {
+    console.log("hello");
+  });
+
+  socket.on(actions.CHAIN_VERIFY, () => {
+    chain.confirmBlock();
   });
 
   return socket;

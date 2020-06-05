@@ -6,11 +6,13 @@ const io = require("socket.io")(httpServer);
 const client = require("socket.io-client");
 
 const BlockChain = require("./models/chain");
-const SocketActions = require("./constants");
+const Transaction = require("./models/transaction");
+const { actions } = require("./constants");
+const db = require("./utils/db");
 
 const socketListeners = require("./socketListeners");
 
-const { PORT } = process.env;
+const PORT = process.env.PORT || 3000;
 var nodeList = [];
 
 const blockChain = new BlockChain(null, io);
@@ -20,9 +22,9 @@ app.use(bodyParser.json());
 app.post("/nodes", (req, res) => {
   const { host, port } = req.body;
   const { callback, nodeLength } = req.query;
-  const node = `https://${host}:${port}`;
+  const node = `http://${host}:${port}`;
   nodeList.push(node);
-  const socketNode = socketListeners(client(node));
+  const socketNode = socketListeners(io, client(node), blockChain);
   blockChain.addNode(socketNode);
   if (callback === "true") {
     if (parseInt(nodeLength) > 1 && nodeList.length === 1) {
@@ -48,9 +50,24 @@ app.post("/nodes", (req, res) => {
 });
 
 app.post("/transaction", (req, res) => {
-  const { sender, receiver, amount } = req.body;
-  io.emit(SocketActions.ADD_TRANSACTION, sender, receiver, amount);
-  res.json({ message: "transaction success" }).end();
+  const transaction = req.body;
+  console.log(transaction);
+  var clientTansaction = new Transaction(null, null, null);
+  var id = clientTansaction.parseTransactionWallet(transaction);
+  if (blockChain.spendOutputs(clientTansaction, true)) {
+    res.json({ status: "valid", id });
+    io.emit(actions.ADD_TRANSACTION, clientTansaction);
+    blockChain.newTransaction(clientTansaction);
+    console.log(
+      `Added transaction: ${JSON.stringify(
+        clientTansaction.getDetails(),
+        null,
+        "\t"
+      )}`
+    );
+  } else {
+    res.json({ status: "invalid" });
+  }
 });
 
 app.get("/chain", (req, res) => {
@@ -62,9 +79,18 @@ app.get("/hello", (req, res) => {
   res.json({ status: 200 });
 });
 
+app.get("/reward", (req, res) => {
+  res.json(db.all());
+});
+
 app.get("/node-list", (req, res) => {
   io.emit("get nodeList");
   res.json({ status: 200 });
+});
+
+app.post("/getconfirm", (req, res) => {
+  let confirms = blockChain.checkIsConfirm(req.body);
+  res.json(confirms);
 });
 
 app.post("/request-list", (req, res) => {
@@ -97,8 +123,8 @@ app.post("/request-join", (req, res) => {
   const { callback } = req.query;
   const node = `http://${host}:${port}`;
   nodeList.push(node);
-  const socketNode = socketListeners(client(node));
-  socketNodes.push(socketNode);
+  const socketNode = socketListeners(io, client(node), blockChain);
+  blockChain.addNode(socketNode);
   if (callback === "true") {
     console.info(`Added node ${node} back`);
     res.json({ status: "Added node Back" }).end();
@@ -119,7 +145,7 @@ io.on("connection", (socket) => {
   });
 });
 
-blockChain.addNode(socketListeners(client(`http://localhost:${PORT}`)));
+// blockChain.addNode(socketListeners(client(`http://localhost:${PORT}`)));
 
 httpServer.listen(PORT, () =>
   console.info(`Express server running on ${PORT}...`)

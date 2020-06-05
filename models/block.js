@@ -1,4 +1,5 @@
-const crypto = require("crypto");
+const crypto = require("crypto-js");
+const { constants } = require("../constants");
 
 const Transaction = require("./transaction");
 
@@ -8,17 +9,20 @@ class Block {
     this.nonce = nonce;
     this.previousBlockHash = previousBlockHash;
     this.transactions = transactions;
-    this.timestamp = Date.now();
+    if (index !== 0) {
+      this.timestamp = Date.now();
+    } else {
+      this.timestamp = constants.GENESIS_DATE;
+    }
   }
 
   hashValue() {
-    const { index, nonce, transactions, timestamp } = this;
+    const { index, nonce, transactions, timestamp, previousBlockHash } = this;
     const blockString = `${index}-${nonce}-${JSON.stringify(
       transactions
-    )}-${timestamp}`;
-    const hashFunction = crypto.createHash("sha256");
-    hashFunction.update(blockString);
-    return hashFunction.digest("hex");
+    )}-${timestamp}-${previousBlockHash}`;
+    const hash = crypto.SHA256(blockString);
+    return hash.toString(crypto.enc.Hex);
   }
 
   setNonce(nonce) {
@@ -48,13 +52,24 @@ class Block {
     };
   }
 
+  getData() {
+    const { index, nonce, previousBlockHash, transactions, timestamp } = this;
+    return {
+      index,
+      nonce,
+      timestamp,
+      previousBlockHash,
+      transactions: transactions.map((transaction) => transaction.getData()),
+    };
+  }
+
   parseBlock(block) {
     this.index = block.index;
     this.nonce = block.nonce;
     this.previousBlockHash = block.previousBlockHash;
     this.timestamp = block.timestamp;
     this.transactions = block.transactions.map((transaction) => {
-      const parsedTransaction = new Transaction();
+      const parsedTransaction = new Transaction(null, null, null);
       parsedTransaction.parseTransaction(transaction);
       return parsedTransaction;
     });
