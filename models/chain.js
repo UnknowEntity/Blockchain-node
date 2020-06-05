@@ -362,7 +362,7 @@ class Blockchain {
           db.add(tempMyKey);
           this.myKey = null;
         }
-        this.transactionBuffer.unshift(transaction);
+        this.currentTransactions.unshift(transaction);
 
         this.blocksBuffer = null;
         this.transactionBuffer = null;
