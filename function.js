@@ -1,5 +1,9 @@
 const crypto = require("crypto");
+const fs = require("fs");
 
+/**
+ * @param {object} data - data to hash SHA256.
+ */
 module.exports.JSONToUint8Array = (data) => {
   var buffer = crypto
     .createHash("sha256")
@@ -13,6 +17,9 @@ module.exports.JSONToUint8Array = (data) => {
   return hash;
 };
 
+/**
+ * @param {string} datadata - String to hash SHA256.
+ */
 module.exports.StringToUint8Array = (data) => {
   var buffer = crypto.createHash("sha256").update(data, "utf8").digest();
   const hash = new Uint8Array(
@@ -23,6 +30,10 @@ module.exports.StringToUint8Array = (data) => {
   return hash;
 };
 
+/**
+ * @param {number[]} originalHash - Hash array number.
+ * @param {boolean} isPublicKey - If true array is hash in public key format.
+ */
 module.exports.FormatedHash = (originalHash, isPublicKey) => {
   var hash = [...originalHash];
   var x = hash.splice(0, 32);
@@ -35,6 +46,9 @@ module.exports.FormatedHash = (originalHash, isPublicKey) => {
   return newHash;
 };
 
+/**
+ * @param {object} data - Hash array number.
+ */
 module.exports.SHA256DataToHex = (data) => {
   var buffer = crypto
     .createHash("sha256")
@@ -43,12 +57,18 @@ module.exports.SHA256DataToHex = (data) => {
   return buffer;
 };
 
+/**
+ * @param {number[]} array
+ */
 module.exports.ArrayToStringHex = (array) => {
   return Array.from(array, function (byte) {
     return ("0" + (byte & 0xff).toString(16)).slice(-2);
   }).join("");
 };
 
+/**
+ * @param {string} str - Hex string input.
+ */
 module.exports.ParseHexString = (str) => {
   var result = [];
   while (str.length >= 2) {

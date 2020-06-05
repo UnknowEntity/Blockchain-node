@@ -1,6 +1,11 @@
 const { ArrayToStringHex } = require("../function");
 
 class Input {
+  /**
+   *
+   * @param {string} address
+   * @param {number[]} signature
+   */
   constructor(address, signature) {
     //this.transactionId = transactionId;
     this.address = address;

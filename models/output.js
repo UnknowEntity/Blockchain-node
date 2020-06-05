@@ -1,6 +1,11 @@
 const { SHA256DataToHex, ArrayToStringHex } = require("../function");
 
 class Output {
+  /**
+   * @param {number} amount
+   * @param {string} address
+   * @param {number[]} publicKey
+   */
   constructor(amount, address, publicKey) {
     this.amount = amount;
     this.address = address;

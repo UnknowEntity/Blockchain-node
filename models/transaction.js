@@ -3,12 +3,24 @@ const Input = require("./input");
 const { SHA256DataToHex } = require("../function");
 
 class Transaction {
+  /**
+   *
+   * @param {Input[]} inputs
+   * @param {Output[]} outputs
+   * @param {string} type
+   */
   constructor(inputs, outputs, type) {
-    this.id = "0";
     this.inputs = inputs;
     this.outputs = outputs;
     this.type = type;
     this.timestamp = Date.now();
+
+    this.id = SHA256DataToHex({
+      inputs: this.inputs,
+      outputs: this.outputs,
+      type: this.type,
+      timestamp: this.timestamp,
+    });
   }
 
   getDetails() {

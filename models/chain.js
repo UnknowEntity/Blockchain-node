@@ -2,10 +2,20 @@ const Block = require("./block");
 const Output = require("./output");
 const Transaction = require("./transaction");
 const forked = require("../global");
+const crypto = require("crypto");
+var BASE58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+const bs58 = require("base-x")(BASE58);
+const db = require("../utils/db");
 
 const secp256k1 = require("secp256k1");
 
-const { StringToUint8Array, FormatedHash } = require("../function");
+const { randomBytes } = require("crypto");
+
+const {
+  StringToUint8Array,
+  FormatedHash,
+  ArrayToStringHex,
+} = require("../function");
 
 const { actions, constants } = require("../constants");
 
@@ -22,6 +32,9 @@ class Blockchain {
     this.confirm = 0;
     this.deny = 0;
     this.isConfirm = false;
+    this.myReward = null;
+    this.workReward = null;
+    this.myKey = null;
   }
 
   createReward() {
@@ -29,6 +42,28 @@ class Blockchain {
     do {
       privKey = randomBytes(32);
     } while (!secp256k1.privateKeyVerify(privKey));
+
+    var pubKey = Array.from(secp256k1.publicKeyCreate(privKey, false));
+    pubKey.splice(0, 1);
+
+    var buffer = crypto
+      .createHash("sha1")
+      .update(JSON.stringify(pubKey), "utf8")
+      .digest();
+    var address = bs58.encode(buffer);
+
+    this.myKey = {
+      privateKey: ArrayToStringHex([...privKey]),
+      publicKey: ArrayToStringHex(FormatedHash(pubKey, false)),
+      address,
+      type: "reward",
+      amount: 10,
+    };
+
+    const rewardOutput = new Output(10, address, FormatedHash(pubKey, false));
+    const rewardTransaction = new Transaction(null, [rewardOutput], "reward");
+
+    return rewardTransaction;
   }
 
   addNode(node) {
@@ -134,8 +169,12 @@ class Blockchain {
     console.log("Mined Successfully");
     let tempChain = this.toArrayData();
     tempChain.push(block);
+    this.myReward = this.createReward();
+    const reward = new Transaction(null, null, null);
+    reward.parseTransaction(this.myReward);
     this.io.emit(actions.END_MINING, {
       blocks: tempChain,
+      reward: reward.getData(),
     });
   }
 
@@ -313,6 +352,19 @@ class Blockchain {
           return block;
         });
         this.blocks = this.blocks.concat(tempChain);
+
+        const transaction = new Transaction(null, null, null);
+        if (this.myReward === null) {
+          transaction.parseTransaction(this.workReward);
+        } else {
+          transaction.parseTransaction(this.myReward);
+        }
+        this.transactionBuffer.unshift(transaction);
+
+        db.add(this.myKey).then(() => {
+          this.myKey = null;
+        });
+
         this.blocksBuffer = null;
         this.transactionBuffer = null;
         this.isConfirm = true;

@@ -12,4 +12,6 @@ module.exports.constants = {
   NUMBER_OF_TRANSACTION: 2,
   GENESIS_DATE: 1500000000,
   JSON: ".\\DATA\\key.json",
+  FIRST_AMOUNT: 20,
+  REWARD_AMOUNT: 50,
 };

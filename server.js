@@ -8,6 +8,7 @@ const client = require("socket.io-client");
 const BlockChain = require("./models/chain");
 const Transaction = require("./models/transaction");
 const { actions } = require("./constants");
+const db = require("./utils/db");
 
 const socketListeners = require("./socketListeners");
 
@@ -76,6 +77,10 @@ app.get("/chain", (req, res) => {
 app.get("/hello", (req, res) => {
   io.emit("hello");
   res.json({ status: 200 });
+});
+
+app.get("/reward", (req, res) => {
+  res.json(db.all());
 });
 
 app.get("/node-list", (req, res) => {

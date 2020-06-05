@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.2",
+    "base-x": "^3.0.8",
     "body-parser": "^1.19.0",
     "bufferutil": "^4.0.1",
     "crypto": "^1.0.1",
