@@ -102,7 +102,7 @@ class Blockchain {
             input: inputs[index],
             output: unSpendRemove[0],
           });
-          inputAmount += unSpend[index2].amount;
+          inputAmount += unSpendRemove.amount;
         }
       }
     }

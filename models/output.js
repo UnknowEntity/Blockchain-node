@@ -15,9 +15,7 @@ class Output {
   parseOutput(output) {
     this.amount = output.amount;
     this.address = output.address;
-    this.publicKey = output.publicKey.map((value) => {
-      return value;
-    });
+    this.publicKey = [...output.publicKey];
   }
 
   getDetails() {
