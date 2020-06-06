@@ -162,6 +162,28 @@ class Blockchain {
     return status;
   }
 
+  getTransactions(arrayId) {
+    let transactions = [];
+    for (let index2 = 0; index2 < arrayId.length; index2++) {
+      for (let index = 0; index < this.blocks.length; index++) {
+        let currentBlockTransactions = this.blocks[index].transactions;
+        for (
+          let index1 = 0;
+          index1 < currentBlockTransactions.length;
+          index1++
+        ) {
+          if (arrayId[index2] === currentBlockTransactions[index1].id) {
+            let tempTransaction = new Transaction(null, null, null);
+            tempTransaction.parseTransaction(currentBlockTransactions[index1]);
+            transactions.push(tempTransaction.getDetails());
+          }
+        }
+      }
+    }
+
+    return transactions;
+  }
+
   mineBlock(block) {
     this.blocksBuffer = [block];
     this.confirm++;

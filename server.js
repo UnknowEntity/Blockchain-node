@@ -14,6 +14,7 @@ const socketListeners = require("./socketListeners");
 
 const PORT = process.env.PORT || 3000;
 var nodeList = [];
+db.reset();
 
 const blockChain = new BlockChain(null, io);
 
@@ -91,6 +92,11 @@ app.get("/node-list", (req, res) => {
 app.post("/getconfirm", (req, res) => {
   let confirms = blockChain.checkIsConfirm(req.body);
   res.json(confirms);
+});
+
+app.post("/gettransaction", (req, res) => {
+  let transactions = blockChain.getTransactions(req.body);
+  res.json(transactions);
 });
 
 app.post("/request-list", (req, res) => {
