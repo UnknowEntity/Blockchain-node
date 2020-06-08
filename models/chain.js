@@ -74,8 +74,7 @@ class Blockchain {
     let transaction = new Transaction(null, null, null);
     transaction.parseTransaction(transactionToCheck);
     if (transaction.type === "first" || transaction.type === "reward") {
-      this.unSpend.push(transaction.outputs[0]);
-      return true;
+      return { status: true, message: null };
     }
 
     let inputs = transaction.inputs;
@@ -91,9 +90,19 @@ class Blockchain {
 
     if (outputs.length === 0) {
       console.log("Wrong output length");
-      return false;
+      return { status: false, message: "Wrong output length" };
     }
 
+    if (outputs.length > 1) {
+      for (let index = 0; index < outputs.length; index++) {
+        for (let index2 = index + 1; index2 < outputs.length; index2++) {
+          if (outputs[index].address === outputs[index2].address) {
+            console.log("Same address error");
+            return { status: false, message: "Same address error" };
+          }
+        }
+      }
+    }
     for (let index = 0; index < inputs.length; index++) {
       for (let index2 = 0; index2 < unSpend.length; index2++) {
         if (inputs[index].address === unSpend[index2].address) {
@@ -102,14 +111,14 @@ class Blockchain {
             input: inputs[index],
             output: unSpendRemove[0],
           });
-          inputAmount += unSpend[index2].amount;
+          inputAmount += unSpendRemove.amount;
         }
       }
     }
 
     if (inputs.length !== temp.length) {
       console.log("Wrong input length");
-      return false;
+      return { status: false, message: "Wrong input length" };
     }
 
     for (let index = 0; index < outputs.length; index++) {
@@ -118,7 +127,7 @@ class Blockchain {
 
     if (inputAmount > outputAmount) {
       console.log("Wrong amount");
-      return false;
+      return { status: false, message: "Wrong amount" };
     }
 
     for (let index = 0; index < temp.length; index++) {
@@ -139,10 +148,10 @@ class Blockchain {
         }
       } else {
         console.log("Wrong signature");
-        return false;
+        return { status: false, message: "Wrong signature" };
       }
     }
-    return true;
+    return { status: true, message: null };
   }
 
   checkIsConfirm(addresses) {
@@ -160,6 +169,28 @@ class Blockchain {
     }
 
     return status;
+  }
+
+  getTransactions(arrayId) {
+    let transactions = [];
+    for (let index2 = 0; index2 < arrayId.length; index2++) {
+      for (let index = 0; index < this.blocks.length; index++) {
+        let currentBlockTransactions = this.blocks[index].transactions;
+        for (
+          let index1 = 0;
+          index1 < currentBlockTransactions.length;
+          index1++
+        ) {
+          if (arrayId[index2] === currentBlockTransactions[index1].id) {
+            let tempTransaction = new Transaction(null, null, null);
+            tempTransaction.parseTransaction(currentBlockTransactions[index1]);
+            transactions.push(tempTransaction.getDetails());
+          }
+        }
+      }
+    }
+
+    return transactions;
   }
 
   mineBlock(block) {
@@ -420,7 +451,7 @@ class Blockchain {
       for (let index1 = 0; index1 < transactions.length; index1++) {
         let outputs = transactions[index1].outputs;
         for (let index2 = 0; index2 < outputs.length; index2++) {
-          this.unSpend.push(outputs);
+          this.unSpend.push(outputs[index2]);
         }
       }
     }

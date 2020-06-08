@@ -13,7 +13,9 @@ const db = require("./utils/db");
 const socketListeners = require("./socketListeners");
 
 const PORT = process.env.PORT || 3000;
+
 var nodeList = [];
+db.reset();
 
 const blockChain = new BlockChain(null, io);
 
@@ -52,8 +54,9 @@ app.post("/transaction", (req, res) => {
   console.log(transaction);
   var clientTansaction = new Transaction(null, null, null);
   var id = clientTansaction.parseTransactionWallet(transaction);
-  if (blockChain.spendOutputs(clientTansaction, true)) {
-    res.json({ status: "valid", id });
+  let spendResult = blockChain.spendOutputs(clientTansaction, true);
+  if (spendResult.status) {
+    res.json({ status: "valid", id, message: null });
     io.emit(actions.ADD_TRANSACTION, clientTansaction);
     blockChain.newTransaction(clientTansaction);
     console.log(
@@ -64,7 +67,7 @@ app.post("/transaction", (req, res) => {
       )}`
     );
   } else {
-    res.json({ status: "invalid" });
+    res.json({ status: "invalid", id: null, message: spendResult.message });
   }
 });
 
@@ -75,6 +78,10 @@ app.get("/chain", (req, res) => {
 app.get("/hello", (req, res) => {
   io.emit("hello");
   res.json({ status: 200 });
+});
+
+app.get("/check", (req, res) => {
+  res.json(true);
 });
 
 app.get("/reward", (req, res) => {
@@ -89,6 +96,15 @@ app.get("/node-list", (req, res) => {
 app.post("/getconfirm", (req, res) => {
   let confirms = blockChain.checkIsConfirm(req.body);
   res.json(confirms);
+});
+
+app.get("/getnodelist", (req, res) => {
+  res.json(nodeList);
+});
+
+app.post("/gettransaction", (req, res) => {
+  let transactions = blockChain.getTransactions(req.body);
+  res.json(transactions);
 });
 
 app.post("/request-list", (req, res) => {

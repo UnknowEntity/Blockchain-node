@@ -23,4 +23,5 @@ module.exports = {
         };
       }),
   add: (value) => db.get("keys").push(value).write(),
+  reset: () => db.get("keys").remove().write(),
 };

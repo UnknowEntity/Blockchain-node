@@ -15,9 +15,7 @@ class Input {
   parseInput(input) {
     //this.transactionId = input.amount;
     this.address = input.address;
-    this.signature = input.signature.map((value) => {
-      return value;
-    });
+    this.signature = [...input.signature];
   }
 
   getDetails() {
