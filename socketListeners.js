@@ -39,11 +39,15 @@ const socketListeners = (io, socket, chain) => {
           console.log("The chain fail second check");
           io.emit(actions.WRONG_HASH_GENERATE);
           chain.denyBlock();
+          socket.disconnect();
+          chain.nodes.splice(chain.nodes.indexOf(socket), 1);
         }
       } else {
         console.log("Something is wrong with the chain");
         io.emit(actions.WRONG_HASH_GENERATE);
         chain.denyBlock();
+        socket.disconnect();
+        chain.nodes.splice(chain.nodes.indexOf(socket), 1);
       }
     });
   });
