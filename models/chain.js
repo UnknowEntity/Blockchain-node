@@ -74,7 +74,6 @@ class Blockchain {
     let transaction = new Transaction(null, null, null);
     transaction.parseTransaction(transactionToCheck);
     if (transaction.type === "first" || transaction.type === "reward") {
-      this.unSpend.push(transaction.outputs[0]);
       return { status: true, message: null };
     }
 
@@ -104,7 +103,6 @@ class Blockchain {
         }
       }
     }
-
     for (let index = 0; index < inputs.length; index++) {
       for (let index2 = 0; index2 < unSpend.length; index2++) {
         if (inputs[index].address === unSpend[index2].address) {
@@ -453,7 +451,7 @@ class Blockchain {
       for (let index1 = 0; index1 < transactions.length; index1++) {
         let outputs = transactions[index1].outputs;
         for (let index2 = 0; index2 < outputs.length; index2++) {
-          this.unSpend.push(outputs);
+          this.unSpend.push(outputs[index2]);
         }
       }
     }

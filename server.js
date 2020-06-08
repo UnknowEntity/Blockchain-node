@@ -82,6 +82,10 @@ app.get("/hello", (req, res) => {
   res.json({ status: 200 });
 });
 
+app.get("/check", (req, res) => {
+  res.json(true);
+});
+
 app.get("/reward", (req, res) => {
   res.json(db.all());
 });
