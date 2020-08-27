@@ -14,10 +14,14 @@
 	"host": "other host name (ex: somthing.com)"
 }
 ```
-#### Local host
+##### Local host
 ```json
 {
 	"host": "localhost",
 	"port": "other node port"
 }
+```
+##### Change port in file server.js line 15
+```javascript
+const PORT = process.env.PORT || 3000;
 ```
