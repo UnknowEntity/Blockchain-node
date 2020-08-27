@@ -7,9 +7,17 @@
 #### There must be at least 2 server.
 
 #### To connect node use postman to POST
+##### Webserver.
 
-~~~json
+```json
 {
-	"host": "other host name"
+	"host": "other host name (ex: somthing.com)"
 }
-
+```
+#### Local host
+```json
+{
+	"host": "localhost",
+	"port": "other node port"
+}
+```
