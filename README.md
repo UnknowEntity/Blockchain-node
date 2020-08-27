@@ -25,3 +25,4 @@
 ```javascript
 const PORT = process.env.PORT || 3000;
 ```
+#### Use route GET /reward to get reward for Proof of work.
