@@ -8,7 +8,7 @@
 
 #### To connect node use postman to POST
 
---json
+~~~json
 {
 	"host": "other host name"
 }
